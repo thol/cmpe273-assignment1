@@ -4,22 +4,26 @@ import socket
 UDP_IP = '127.0.0.1'
 UDP_PORT = 4000
 BUFFER_SIZE = 1024
-MESSAGE = "ping"
+upload_file='./upload.txt'
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+print("Connected to the server.")
+err_count=0
 
-
-def send(id=0):
+def send(line="ping"):
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.sendto(f"{id}:{MESSAGE}".encode(), (UDP_IP, UDP_PORT))
+        s.sendto(line.encode(), (UDP_IP, UDP_PORT))
         data, ip = s.recvfrom(BUFFER_SIZE)
-        print("received data: {}: {}".format(ip, data.decode()))
+        print("Received ack({})".format(data))
     except socket.error:
+        err_count += 1
         print("Error! {}".format(socket.error))
         exit()
 
+print("Starting a file ({}) upload...".format(upload_file))
+with open(upload_file) as f:
+    for line in f.readlines():
+        send(line)
 
-def get_client_id():
-    id = input("Enter client id:")
-    return id
-
-send(get_client_id())
+s.close()
+print("Error count {}".format(err_count))
+print("File upload successfully completed.")
